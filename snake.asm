@@ -27,14 +27,32 @@ setup_game:
   mov ax, 0x0003
   int 0x10                ; Invoke BIOS video interrupt
 
-  ;; Clear the screen (Text Mode)
-  mov ah, 0x06            ; Function to scroll up the entire screen
-  mov al, 0x00            ; Scroll up
-  mov bh, 0x00            ; Attribute for the entire screen (black on black)
-  mov cx, 0x0000          ; Upper left corner
-  mov dx, 0x184F          ; Lower right corner (80x25)
-  int 0x10                ; Invoke BIOS interrupt to clear the screen
+  ;; setting the VID memory
+  mov ax, VIDMEM
+  mov es, ax ; the es => VIDMEM
 
+  ;;set 1st snake segment "head"
+  mov ax, [playerX]
+  mov word [SNAKEXARRAY], ax
+  mov ax, [playerY]
+  mov word [SNAKEYARRAY] , ax
+
+  ;; hide the cursor
+  mov ax, 0x02
+  mov dx, 0x2600 ;; DX -> DH & DL  ==> DH = 0x26 DL = 0x26
+  int 0x10
+
+;; Game loop
+game_loop:
+   ;;clean the loop every iteration
+   mov ax , BGCOLOR
+   xor di,di
+   mov cx, SCREENH*SCREENW
+   rep stosw   ;; mov [ES:DI], ax & inc di
+
+JMP game_loop
+
+  
   ;; Boot sector padding
 times 510 - ($ - $$) db 0   ; Fill the rest of the boot sector with zeros
 dw 0xAA55                  ; Boot sector signature
